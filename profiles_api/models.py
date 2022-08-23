@@ -10,6 +10,7 @@ class UserProfileSetting(models.Model):
         on_delete=models.CASCADE
     )
     font_style = models.CharField(max_length=255, default="Roboto", blank=True)
+    has_image = models.CharField(max_length=255, default="No", blank=True)
 
     def __str__(self):
         return f'{self.user}\'s Profile'

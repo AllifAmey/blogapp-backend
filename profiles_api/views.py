@@ -50,7 +50,8 @@ class UserLoginApiView(APIView):
                     return Response({'auth_status': 'Authenticated',
                                      "user_id": user.id,
                                      "setting_id": user_settings.id,
-                                     "font_style": user_settings.font_style})
+                                     "font_style": user_settings.font_style,
+                                     "has_image": user_settings.has_image})
             else:
                 return Response({'auth_status': 'Not authenticated!'})
         else:

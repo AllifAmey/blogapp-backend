@@ -19,7 +19,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         new_user = User.objects.get(username=validated_data['username'])
         # add defaults here
-        UserProfileSetting.objects.create(user=new_user, font_style='Roboto')
+        UserProfileSetting.objects.create(user=new_user, font_style='Roboto', has_image="No")
         return user
 
 
@@ -28,7 +28,7 @@ class UserProfileSettingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfileSetting
-        fields = ("id", "user", "font_style")
+        fields = ("id", "user", "font_style", "has_image")
 
 
 class UserProfileImageSettingSerializer(serializers.ModelSerializer):
