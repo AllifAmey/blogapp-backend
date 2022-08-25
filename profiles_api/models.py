@@ -43,6 +43,8 @@ class Blog(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     content = models.TextField()
+    image_type = models.CharField(max_length=255)
+    image_url = models.URLField(max_length=255, null=True)
 
     def __str__(self):
         return f'{self.user}\'s Blog. Title: {self.title}'

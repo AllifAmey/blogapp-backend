@@ -50,4 +50,4 @@ class UserBlogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Blog
-        fields = ('id', 'user', 'title', 'content',)
+        fields = ('id', 'user', 'title', 'content', 'image_type', 'image_url')

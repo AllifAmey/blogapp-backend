@@ -75,6 +75,8 @@ class UserBlogViewSet(viewsets.ModelViewSet):
                         "author": user["username"],
                         "title": blog["title"],
                         "content": blog["content"],
+                        "image_type": blog['image_type'],
+                        "image_url": blog['image_url']
                     })
                     break
         return Response(blog_list)
