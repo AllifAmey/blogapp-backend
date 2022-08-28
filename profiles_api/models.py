@@ -16,28 +16,6 @@ class UserProfileSetting(models.Model):
         return f'{self.user}\'s Profile'
 
 
-class UserProfilePicture(models.Model):
-    """Handles user profile picture"""
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-    )
-    image = models.ImageField(blank=True, null=True,
-                              upload_to=f'profileCover/%Y/%m/%D/')
-
-    def __str__(self):
-        return "Check this"
-
-
-class AuthenticatedUser(models.Model):
-    """Handles user authentication"""
-    username = models.CharField(max_length=50)
-    password = models.CharField(max_length=50)
-
-    def __str__(self):
-        return "Authenticating Users"
-
-
 class Blog(models.Model):
     """Handle blog creation"""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -45,16 +23,57 @@ class Blog(models.Model):
     content = models.TextField()
     image_type = models.CharField(max_length=255)
     image_url = models.URLField(max_length=255, null=True)
+    font_style = models.CharField(max_length=255)
 
     def __str__(self):
         return f'{self.user}\'s Blog. Title: {self.title}'
 
-
-class BlogPicture(models.Model):
-    """Handles blog pictures"""
-    blog = models.OneToOneField(
-        Blog,
+class BlockedList(models.Model):
+    """Handles block list"""
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE
     )
-    image = models.ImageField(blank=True, null=True,
-                              upload_to=f'profileCover/1/')
+
+    def __str__(self):
+        return f'{self.user}\'s Block List'
+
+class BlockedUser(models.Model):
+    """Handles each blocked user"""
+
+    blocked_list = models.ForeignKey(
+        BlockedList,
+        on_delete=models.CASCADE
+    )
+
+    blocked_user = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f'{self.blocked_user} is blocked in {self.blocked_list}'
+
+        
+class FriendList(models.Model):
+    """Handles friends list"""
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f'{self.user}\'s Friend List'
+
+class Friend(models.Model):
+    """Handles each friend"""
+    friend_list = models.ForeignKey(
+        FriendList,
+        on_delete=models.CASCADE
+    )
+    # This field will store the username ,
+    # use this field to check against database.
+    friend = models.CharField(max_length=255)
+    # friend status to also indicate request
+    friend_status = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f'{self.friend} is a friend in {self.friend_list}'
+
+

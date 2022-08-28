@@ -8,6 +8,10 @@ router = DefaultRouter()
 router.register('register-viewset', views.RegisterViewSet)
 router.register('userblog-viewset', views.UserBlogViewSet)
 router.register('profilesetting-viewset', views.UserProfileSettingViewSet)
+router.register('friendlist-viewset', views.FriendListViewSet)
+router.register('friend-viewset', views.FriendViewSet)
+router.register('blockedlist-viewset', views.BlockedListViewSet)
+router.register('blockeduser-viewset', views.BlockedUserViewSet)
 
 urlpatterns = [
 	path('', include(router.urls)),

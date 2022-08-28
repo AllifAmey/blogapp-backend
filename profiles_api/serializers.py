@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
-from .models import UserProfileSetting, AuthenticatedUser, Blog, UserProfilePicture, BlogPicture
+from .models import UserProfileSetting, Blog, FriendList, Friend, BlockedUser, BlockedList
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -23,26 +23,41 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
+class BlockedListSerializer(serializers.ModelSerializer):
+    """Serializes blocked list data"""
+
+    class Meta:
+        model = BlockedList
+        fields = ('user',)
+
+class BlockedUserSerializer(serializers.ModelSerializer):
+    """Serializes blocked user data"""
+
+    class Meta:
+        model = BlockedUser
+        fields = ('blocked_list', 'blocked_user',)
+
+class FriendListSerializer(serializers.ModelSerializer):
+    """Serializes friend list data"""
+
+    class Meta:
+        model = FriendList
+        fields = ('user',)
+
+class FriendSerializer(serializers.ModelSerializer):
+    """Serializes friend list data"""
+
+    class Meta:
+        model = Friend
+        fields = ('friend_list', 'friend', 'friend_status',)
+
+
 class UserProfileSettingSerializer(serializers.ModelSerializer):
     """Serializes profile settings of user"""
 
     class Meta:
         model = UserProfileSetting
         fields = ("id", "user", "font_style", "has_image")
-
-
-class UserProfileImageSettingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfilePicture
-        fields = ("id", "user", "image")
-
-
-class UserSerializer(serializers.ModelSerializer):
-    """Serializers User data"""
-
-    class Meta:
-        model = AuthenticatedUser
-        fields = ('username', 'password',)
 
 
 class UserBlogSerializer(serializers.ModelSerializer):

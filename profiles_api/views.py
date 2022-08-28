@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
+from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from profiles_api import serializers
@@ -16,6 +17,7 @@ class RegisterViewSet(viewsets.ModelViewSet):
     """Handle creating and updating profiles"""
     serializer_class = serializers.RegisterSerializer
     queryset = User.objects.all()
+    
 
 
 class UserSignUpApiView(ObtainAuthToken):
@@ -26,9 +28,19 @@ class UserSignUpApiView(ObtainAuthToken):
 class UserLoginApiView(APIView):
     """Handles checking if User is authenticated"""
 
-    def get(self):
-        """Get all Users"""
-        usernames = [user.username for user in User.objects.all()]
+    def get(self, request):
+        """Get all AuthenticatedUsers"""
+        usernames = []
+        for user in User.objects.all():
+            if user.is_superuser:
+                continue
+            if user.is_authenticated:
+                usernames.append(
+                    {
+                        'username': user.username
+                    }
+                )
+            
         return Response(usernames)
 
     def post(self, request):
@@ -57,6 +69,26 @@ class UserLoginApiView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class BlockedListViewSet(viewsets.ModelViewSet):
+    """Handles creating and updating blocked list"""
+    serializer_class = serializers.BlockedListSerializer
+    queryset = models.BlockedList.objects.all()
+
+class BlockedUserViewSet(viewsets.ModelViewSet):
+    """Handles creating and updating blocked user"""
+    serializer_class = serializers.BlockedUserSerializer
+    queryset = models.BlockedUser.objects.all()
+
+class FriendListViewSet(viewsets.ModelViewSet):
+    """Handles creating and updating Friend list"""
+    serializer_class = serializers.FriendListSerializer
+    queryset = models.FriendList.objects.all()
+
+class FriendViewSet(viewsets.ModelViewSet):
+    """Handles creating and updating Friend list"""
+    serializer_class = serializers.FriendSerializer
+    queryset = models.Friend.objects.all()
+
 
 class UserBlogViewSet(viewsets.ModelViewSet):
     """Handle creating and updating blogs"""
@@ -66,7 +98,6 @@ class UserBlogViewSet(viewsets.ModelViewSet):
     def list(self, request):
         """fetches Blog objects"""
         blog_list = []
-        # remind to add font-style attached to it so the frontend can see and apply.
         for blog in models.Blog.objects.all().values():
             user_id = blog["user_id"]
             for user in User.objects.all().values():
@@ -76,7 +107,8 @@ class UserBlogViewSet(viewsets.ModelViewSet):
                         "title": blog["title"],
                         "content": blog["content"],
                         "image_type": blog['image_type'],
-                        "image_url": blog['image_url']
+                        "image_url": blog['image_url'],
+                        "font_style": blog['font_style']
                     })
                     break
         return Response(blog_list)
