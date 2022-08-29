@@ -29,16 +29,40 @@ class UserLoginApiView(APIView):
     """Handles checking if User is authenticated"""
 
     def get(self, request):
-        """Get all AuthenticatedUsers"""
-        # Return all the users that are friends and use that for the backend
+        """Get all authenticated users and display their status related to requester"""
         usernames = []
+        # 2 lines below is user requesting 
+        user_requester_username = request.headers['username']
+        user_requester = User.objects.get(username=user_requester_username)
+        # models of Friend and blocked list are checked
+        # these models will be used to check if user is friend or blocked by requester 
+        user_requester_friendList = models.FriendList.objects.get(user=user_requester)
+        user_requester_blockedList = models.BlockedList.objects.get(user=user_requester)
+        
         for user in User.objects.all():
             if user.is_superuser:
                 continue
-            if user.is_authenticated:
+            if user.is_authenticated and user.username != user_requester_username:
+                #check if userprofilesetting to get profile picture
+                try:
+                    models.Friend.objects.get(friend_list=user_requester_friendList, friend=user.username)
+                except:
+                    try:
+                        models.BlockedUser.objects.get(blocked_list=user_requester_blockedList, blocked_user=user.username)
+                    except:
+                        user_status_toRequester = "neutral"
+                    else:
+                        user_status_toRequester = "blocked"
+                else:
+                    user_status_toRequester = "friend"
+                    
+                
+                user_image_info = models.UserProfileSetting.objects.get(user=user)
                 usernames.append(
                     {
-                        'username': user.username
+                        'username': user.username,
+                        'has_image': user_image_info.has_image,
+                        'user_relation_status' : user_status_toRequester
                     }
                 )
             
@@ -76,20 +100,85 @@ class BlockedUserViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.BlockedUserSerializer
     queryset = models.BlockedUser.objects.all()
 
-    """
-    Idea of getting a user Blocked:
+    def list(self, request):
+        """Displays a list of all blocked users attached to the requester's blocklist"""
+        user_requester_username = request.headers['username']
+        user_requester = User.objects.get(username=user_requester_username)
+        user_requester_blockList = models.BlockedList.objects.get(user=user_requester)
 
-    Post method-
-    Check to see if the user blocked is on the friend model attached to the user requesting block,
-    if it is then delete the user soon-to-be blocked friend model attached to the requester ,
+        all_blockedUsers = []
 
-    If not then create blockedUser model.  
+        try:
+            models.BlockedUser.objects.get(blocked_list=user_requester_blockList)
+        except:
+            all_blockedUsers.append({
+                'message': 'Empty'
+            })
+        else:
+            for blockedUser in models.BlockedUser.objects.get(blocked_list=user_requester_blockList):
+                all_blockedUsers.append({
+                    'blockedUser': blockedUser.blocked_user
+                })
+        return Response(all_blockedUsers)
 
-    Get Method:
+    def create(self, request):
+        """Handles creating new block models"""
+        # expected Json file {'username': requester_username, 'block user': block_username} 
+        user_block_request = request.data.get('blocked_user')
+        print(request.data)
+        print(user_block_request)
+        user_block = User.objects.get(username=user_block_request)
+        user_block_request_friendList = models.FriendList.objects.get(user=user_block)
+        user_requester_username = request.data.get('username')
+        user_requester = User.objects.get(username=user_requester_username)
+        user_requester_friendList = models.FriendList.objects.get(user=user_requester)
+        user_requester_blockedList = models.BlockedList.objects.get(user=user_requester)
 
-    Check if all models attached to the blocked list to see and return the usernames.
-    
-    """
+        response = []
+
+        try:
+            models.BlockedUser.objects.get(blocked_list=user_requester_blockedList, blocked_user=user_block_request)
+        except:
+            try:
+                models.Friend.objects.get(friend_list=user_requester_friendList, friend=user_block_request)
+            except:
+                # block user is not a friend nor blocked
+                models.BlockedUser.objects.create(blocked_list=user_requester_blockedList, blocked_user=user_block_request)
+                response.append(
+                    {
+                        'message': 'User has been blocked'
+                    }
+                )
+            else:
+                # block user is a friend of user requester and not blocked
+                # block user is removed from user requester's friend list and block user's friendlist removed user requester
+                try:
+                    # the block user is not a friend of the user requester but requester is a friend.
+                    models.Friend.objects.get(friend_list=user_block_request_friendList, friend=user_requester_username)
+                except:
+                    former_friend = models.Friend.objects.get(friend_list=user_requester_friendList, friend=user_block_request)
+                    former_friend.delete()
+                    models.BlockedUser.objects.create(blocked_list=user_requester_blockedList, blocked_user=user_block_request)
+                    response.append({
+                        'message': 'user was never a friend anyway, user is now blocked.'
+                    })
+                else:
+                    former_friend = models.Friend.objects.get(friend_list=user_requester_friendList, friend=user_block_request)
+                    former_friend.delete()
+                    user_block_friend = models.Friend.objects.get(friend_list=user_block_request_friendList, friend=user_requester_username)
+                    user_block_friend.delete()
+                    models.BlockedUser.objects.create(blocked_list=user_requester_blockedList, blocked_user=user_block_request)
+                    response.append(
+                        {
+                            'message': 'Friend removed and user blocked'
+                        }
+                    )
+        else:
+            response.append({
+                'message': 'User already blocked'
+            })
+
+        return Response(response)
 
 class FriendListViewSet(viewsets.ModelViewSet):
     """Handles creating and updating Friend list"""
@@ -101,6 +190,30 @@ class FriendViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.FriendSerializer
     queryset = models.Friend.objects.all()
 
+    def list(self, request):
+        """Handles displaying all friend models attached to friendlist's model linked to the requester"""
+        user_requester_username = request.headers['username']
+        user_requester = User.objects.get(username=user_requester_username)
+        user_requester_friendList = models.FriendList.objects.get(user=user_requester)
+
+        all_friendList = []
+
+        try:
+            models.Friend.objects.get(friend_list=user_requester_friendList)
+        except:
+            all_friendList.append({
+                'message': 'Empty'
+            })
+        else:
+            print("hello")
+            for friend in models.Friend.objects.get(blocked_list=user_requester_friendList):
+                all_friendList.append({
+                    'friend': friend.friend,
+                    'friend_status': friend.friend_status
+                })
+        
+        return Response(all_friendList)
+    
     """
 
     Idea for friend request:

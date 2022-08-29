@@ -20,6 +20,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         new_user = User.objects.get(username=validated_data['username'])
         # add defaults here
         UserProfileSetting.objects.create(user=new_user, font_style='Roboto', has_image="No")
+        FriendList.objects.create(user=new_user)
+        BlockedList.objects.create(user=new_user)
         return user
 
 
