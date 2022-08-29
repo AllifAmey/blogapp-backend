@@ -30,6 +30,7 @@ class UserLoginApiView(APIView):
 
     def get(self, request):
         """Get all AuthenticatedUsers"""
+        # Return all the users that are friends and use that for the backend
         usernames = []
         for user in User.objects.all():
             if user.is_superuser:
@@ -75,6 +76,21 @@ class BlockedUserViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.BlockedUserSerializer
     queryset = models.BlockedUser.objects.all()
 
+    """
+    Idea of getting a user Blocked:
+
+    Post method-
+    Check to see if the user blocked is on the friend model attached to the user requesting block,
+    if it is then delete the user soon-to-be blocked friend model attached to the requester ,
+
+    If not then create blockedUser model.  
+
+    Get Method:
+
+    Check if all models attached to the blocked list to see and return the usernames.
+    
+    """
+
 class FriendListViewSet(viewsets.ModelViewSet):
     """Handles creating and updating Friend list"""
     serializer_class = serializers.FriendListSerializer
@@ -84,6 +100,34 @@ class FriendViewSet(viewsets.ModelViewSet):
     """Handles creating and updating Friend list"""
     serializer_class = serializers.FriendSerializer
     queryset = models.Friend.objects.all()
+
+    """
+
+    Idea for friend request:
+    Post method - 
+    Check if friend request made to a user is on the BlockedUserModel attached to the user's block list,
+    if it is then return Response with message "You can not friend request a blocked person,
+     unblock them to do so"
+    Check if friend request mode to a user does not have the friend requester on their blocked list, 
+    if they do then return Response with message "you have been blocked and can not message". 
+
+    if no errors, then Post method will create a model with the friend_status = "request"
+
+    Idea for accepting friend and recognising friendship:
+    Patch method - 
+
+    Patch method will update the friend_status field to = "official" or some words to indicate friend.
+
+    Idea for seeing who is the user's friend:
+
+    Get method - 
+
+    Get method will recieve a header of username,
+    This info will allow django to query database to check if user exist then, 
+    grab the Friend models attached to FriendList model which is attached to user,
+    all friend models will be checked related to user's friend model,
+    if user_status is "official" it is then added to a list which is returned as a Response.
+    """
 
 
 class UserBlogViewSet(viewsets.ModelViewSet):
