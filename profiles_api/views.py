@@ -45,29 +45,25 @@ class UserLoginApiView(APIView):
 
     def post(self, request):
         """Check if User is authenticated and displays values attached to user"""
-        d = dict(request.data)
-        serializer = serializers.UserSerializer(data=d)
-        if serializer.is_valid():
-            user_auth_status = authenticate(username=request.data.get('username'),
-                                            password=request.data.get('password'))
-            if user_auth_status is not None:
-                try:
-                    User.objects.get(username=request.data.get('username'))
-                except:
-                    print("user does not exist!")
-                else:
-                    user = User.objects.get(username=request.data.get('username'))
-                    user_settings = models.UserProfileSetting.objects.get(user=user.id)
 
-                    return Response({'auth_status': 'Authenticated',
-                                     "user_id": user.id,
-                                     "setting_id": user_settings.id,
-                                     "font_style": user_settings.font_style,
-                                     "has_image": user_settings.has_image})
+        user_auth_status = authenticate(username=request.data.get('username'),
+                                        password=request.data.get('password'))
+        if user_auth_status is not None:
+            try:
+                User.objects.get(username=request.data.get('username'))
+            except:
+                print("user does not exist!")
             else:
-                return Response({'auth_status': 'Not authenticated!'})
+                user = User.objects.get(username=request.data.get('username'))
+                user_settings = models.UserProfileSetting.objects.get(user=user.id)
+
+                return Response({'auth_status': 'Authenticated',
+                                    "user_id": user.id,
+                                    "setting_id": user_settings.id,
+                                    "font_style": user_settings.font_style,
+                                    "has_image": user_settings.has_image})
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'auth_status': 'Not authenticated!'})
 
 class BlockedListViewSet(viewsets.ModelViewSet):
     """Handles creating and updating blocked list"""
