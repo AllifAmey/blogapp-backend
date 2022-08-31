@@ -224,7 +224,7 @@ class BlockedUserViewSet(viewsets.ModelViewSet):
         response = []
 
         try:
-            models.BlockedUser.get(block_list=user_request_blockList)
+            models.BlockedUser.get(block_list=user_request_blockList, blocked_user=user_unblock)
         except:
             response.append(
                 {
@@ -232,7 +232,7 @@ class BlockedUserViewSet(viewsets.ModelViewSet):
                 }
                 )
         else:
-            unblock_user = models.BlockedUser.get(block_list=user_request_blockList)
+            unblock_user = models.BlockedUser.get(block_list=user_request_blockList, blocked_user=user_unblock )
             unblock_user.delete()
 
 

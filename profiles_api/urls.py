@@ -17,4 +17,5 @@ urlpatterns = [
 	path('', include(router.urls)),
 	path('signup/', views.UserSignUpApiView.as_view()),
 	path('auth/login/', views.UserLoginApiView.as_view()),
+	path('grab/id/', views.getFriendBlockedApiView.as_view())
 ]
