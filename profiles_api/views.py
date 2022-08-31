@@ -208,7 +208,7 @@ class BlockedUserViewSet(viewsets.ModelViewSet):
 
         return Response(response)
 
-    def destroy(self, request):
+    def destroy(self, request, pk):
         """Handles unblocking people. """
 
         #expected Json file is {'username': user_request_unblock, 'unblock user}
@@ -219,12 +219,11 @@ class BlockedUserViewSet(viewsets.ModelViewSet):
         user_request = User.objects.get(username=user_request_unblock_username)
         user_unblock = User.objects.get(username=user_unblock_username)
 
-        user_request_blockList = models.BlockedList.get(user=user_request)
+        user_request_blockList = models.BlockedList.objects.get(user=user_request)
         
         response = []
-
         try:
-            models.BlockedUser.get(block_list=user_request_blockList, blocked_user=user_unblock)
+            models.BlockedUser.objects.get(blocked_list=user_request_blockList, blocked_user=user_unblock_username)
         except:
             response.append(
                 {
@@ -232,7 +231,7 @@ class BlockedUserViewSet(viewsets.ModelViewSet):
                 }
                 )
         else:
-            unblock_user = models.BlockedUser.get(block_list=user_request_blockList, blocked_user=user_unblock )
+            unblock_user = models.BlockedUser.objects.get(blocked_list=user_request_blockList, blocked_user=user_unblock_username )
             unblock_user.delete()
 
 
@@ -256,6 +255,7 @@ class getFriendBlockedApiView(APIView):
         model_type = request.data.get('type')
 
         response = []
+        print(user_1_username)
         if model_type == "friend":
             #return friend model idea of both users
             try:
@@ -278,19 +278,22 @@ class getFriendBlockedApiView(APIView):
                             }
                         )
                     else:
+                        # this is the response for accepting friendship.
+                        response.append(
                         {
-                            'id': f'The id on {user_1_username}\'s friendList is {user_2_friend.id}'
-                        }
+                            'id': user_2_friend.id
+                        })
                 else:
-                    {
+                    response.append({
                         'id': f'The id on {user_2_username}\'s friendList is {user_1_friend.id}'
-                    }
+                    })
             else:
                 # both models exist return both ids.
-                {
-                    'id': f'The id on {user_2_username}\'s friendList is {user_1_friend.id}',
-                    'id_2': f'The id on {user_1_username}\'s friendList is {user_2_friend.id}'
-                }
+                # this is the response for unfriending.
+                # just return one of the ids to access patch method.
+                response.append({
+                    'id': user_1_friend.id,
+                })
         if model_type == "block":
             try:
                 #check if there are both models.
@@ -311,18 +314,19 @@ class getFriendBlockedApiView(APIView):
                                 }
                             )
                     else:
-                        {
-                            'id': f'The id on {user_1_username}\'s blockedList is {user_2_block.id}'
-                        }
+                        # this is the unblock.
+                        response.append({
+                            'id': user_2_block.id
+                        })
                 else:
-                    {
+                    response.append({
                         'id': f'The id on {user_2_username}\'s blockedList is {user_1_block.id}'
-                    }
+                    })
             else:
-                {
+                response.append({
                     'id': f'The id on {user_2_username}\'s blockedList is {user_1_block.id}',
                     'id_2': f'The id on {user_1_username}\'s blockedList is {user_2_block.id}'
-                }
+                })
         return Response(response)
 
 class FriendListViewSet(viewsets.ModelViewSet):
@@ -436,12 +440,13 @@ class FriendViewSet(viewsets.ModelViewSet):
 
         return Response(response)
     
-    def partial_update(self, request):
+    def partial_update(self, request, pk):
         """Handles updating friend_status field in friend model to friend"""
         # 'friend_accepter is basically 
         # expected Json file {'username': friend_accepter_usernamer' : 'friend_requester': friend_requester_username}
         friend_accepter_username = request.data.get('username')
         friend_requester_username = request.data.get('friend_requester')
+        print("hello")
         friend_accepter_user = User.objects.get(username=friend_accepter_username)
         friend_requester_user = User.objects.get(username=friend_requester_username)
         # both friend list will be used to create Friend
@@ -464,7 +469,7 @@ class FriendViewSet(viewsets.ModelViewSet):
             }
             )
 
-    def destroy(self, request):
+    def destroy(self, request, pk):
         """Handles unfriending users"""
         #expected Json file {'username': user_request, 'former_friend': 'friend_username'}
         former_friend_username = request.data.get('username')
