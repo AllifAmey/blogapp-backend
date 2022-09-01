@@ -37,7 +37,7 @@ class Chat(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE
     )
-
+    
     user_2 = models.CharField(max_length=255)
 
     def __str__(self):
