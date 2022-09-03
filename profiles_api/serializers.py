@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
-from .models import UserProfileSetting, Blog, FriendList, Friend, BlockedUser, BlockedList, ChatList, Chat, Message
+from .models import UserProfileSetting, Blog, FriendList, Friend, BlockedUser, BlockedList
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -22,7 +22,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         UserProfileSetting.objects.create(user=new_user, font_style='Roboto', has_image="No")
         FriendList.objects.create(user=new_user)
         BlockedList.objects.create(user=new_user)
-        ChatList.objects.create(user=new_user)
 
         return user
 
