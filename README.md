@@ -2,10 +2,13 @@
 
 A simple blog app with social features.
 
-Planned features:
+Current phase of development:
 
-* uploading the backend to the cloud - Google Cloud 
-* adding a API to post chat messages and grab them.
+Priorities shifted.
+
+Stalled to work on a shop website and shop mobile app using JavaScript tech stack.
+
+Progress or any updates will be incredibly slow for this phase of the app.
 
 Authentication currently used -
 

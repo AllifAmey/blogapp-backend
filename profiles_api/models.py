@@ -15,49 +15,6 @@ class UserProfileSetting(models.Model):
     def __str__(self):
         return f'{self.user}\'s Profile'
 
-class ChatList(models.Model):
-    """Handles creating a list of chats linked to User"""
-
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
-    )
-    
-    def __str__(self):
-        return f'{self.user}\'s list of chats'
-
-class Chat(models.Model):
-    """Handles creating individual Chat"""
-    
-    chat_list = models.OneToOneField(
-        ChatList,
-        on_delete=models.CASCADE
-    )
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
-    )
-    
-    user_2 = models.CharField(max_length=255)
-
-    def __str__(self):
-        return f'{self.user} & user_2 {self.user_2} are chatting'
-
-class Message(models.Model):
-    """Handles messages"""
-
-    chat = models.ForeignKey(
-        Chat,
-        on_delete=models.CASCADE
-    )
-    user = models.CharField(max_length=255)
-    message = models.TextField()
-    date_sent = models.DateField()
-
-    def __str__(self):
-        return f'{self.user} sent a chat while {self.chat}'
-
-
 
 class Blog(models.Model):
     """Handle blog creation"""
